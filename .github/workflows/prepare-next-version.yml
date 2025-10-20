@@ -1,0 +1,32 @@
+name: Deploy to Maven Central
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_VERSION: '3.9.11'
+
+on:
+  workflow_dispatch:
+    inputs:
+      new-version:
+        description: New version (MAJOR.MINOR.PATCH)
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Update version
+        uses: ./.github/actions/prepare-next-version
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          maven-version: ${{ env.MAVEN_VERSION }}
+          new-version: ${{ github.event.inputs.new-version }}

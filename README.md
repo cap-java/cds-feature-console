@@ -2,13 +2,13 @@
 
 # cds-feature-console
 
+
+> [!NOTE]
+> CAP console is still being developed, more information and documentation will follow shortly.
+
 ## About this project
 
 Plugin that allows CAP Java applications to communicate with the the SAP Cloud Application Programming Model console.
-
-## Requirements and Setup
-
-*Insert a short description what is required to get your project running...*
 
 ## Support, Feedback, Contributing
 

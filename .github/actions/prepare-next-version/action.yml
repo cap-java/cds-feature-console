@@ -1,0 +1,66 @@
+name: Prepare Next Version
+description: "Updates the revision property in the POM file, creates the changelog entry and opens a pull request."
+
+inputs:
+  java-version:
+    description: "The Java version the build shall run with."
+    required: true
+  maven-version:
+    description: "The Maven version the build shall run with."
+    required: true
+  new-version:
+    description: "New version (MAJOR.MINOR.PATCH)"
+    required: true
+  changelog-file:
+    description: "The changelog file to update."
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java ${{ inputs.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: sapmachine
+        cache: maven
+
+    - name: Setup Maven ${{ inputs.maven-version }}
+      uses: stCarolas/setup-maven@v5
+      with:
+        maven-version: ${{ inputs.maven-version }}
+
+    - name: Update version
+      env:
+        NEW_VERSION: ${{ inputs.new-version }}
+      run: |
+        mvn --no-transfer-progress versions:set-property -Dproperty=revision -DnewVersion=NEW_VERSION
+      shell: bash
+
+    - name: Replace Unreleased entry in ${{ inputs.changelog-file }}
+      env:
+        NEW_VERSION: ${{ inputs.new-version }}
+        CHANGELOG_FILE: ${{ inputs.changelog-file }}
+      run: |
+        CURRENT_DATE=$(date +%Y-%m-%d)
+        sed -i -E "0,/^##\s+.*\[Unreleased\].*$/s//## [Unreleased]\\
+        \\
+        ### Added\\
+        ### Changed\\
+        ### Deprecated\\
+        ### Removed\\
+        ### Fixed\\
+        ### Security\\
+        \\
+        ## [${NEW_VERSION}] - ${CURRENT_DATE}/" $CHANGELOG_FILE
+        head -n 20 $CHANGELOG_FILE
+      shell: bash
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        commit-message: chore/release-${{ inputs.new-version }}
+        title: "chore(version): version ${{ inputs.new-version }}"
+        body: Set version to ${{ inputs.new-version }}
+        branch: chore/release-${{ inputs.new-version }}
+        reviewers: ${{ github.actor }}
