@@ -30,3 +30,4 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           maven-version: ${{ env.MAVEN_VERSION }}
           new-version: ${{ github.event.inputs.new-version }}
+          token: ${{ secrets.GH_TOKEN }}
