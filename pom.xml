@@ -307,6 +307,7 @@
             <artifactId>central-publishing-maven-plugin</artifactId>
             <configuration>
               <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
             </configuration>
           </plugin>
         </plugins>
