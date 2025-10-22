@@ -123,6 +123,7 @@
         <configuration>
           <failOnError>true</failOnError>
           <doclint>all,-missing</doclint>
+          <release>17</release>
         </configuration>
         <executions>
           <execution>
