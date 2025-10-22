@@ -48,3 +48,5 @@ jobs:
           pgp-private-key: ${{ secrets.PGP_PRIVATE_KEY }}
           pgp-passphrase: ${{ secrets.PGP_PASSPHRASE }}
           maven-version: ${{ env.MAVEN_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          
