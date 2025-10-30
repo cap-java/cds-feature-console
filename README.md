@@ -8,7 +8,7 @@
 
 ## About this project
 
-Plugin that allows CAP Java applications to communicate with the the SAP Cloud Application Programming Model console.
+Plugin that allows CAP Java applications to communicate with the SAP Cloud Application Programming Model console. This repository just contains the Java plugin, you'll also want to install CAP console to utilize the functionality that this plugin offers. Find more information about the CAP console and the plugin on [capire](https://cap.cloud.sap/docs/tools/console).
 
 ## Support, Feedback, Contributing
 
