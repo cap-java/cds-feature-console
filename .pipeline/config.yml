@@ -4,32 +4,32 @@ steps:
     verify: true
     flatten: true
     # https://www.project-piper.io/steps/mavenBuild/#dockerimage
-    dockerImage: ''
+    dockerImage: ""
 
   detectExecuteScan:
-    projectName: 'com.sap.cds.feature.console'
+    projectName: "com.sap.cds.feature.console"
     groups:
-      - 'CDSJAVA-OPEN-SOURCE'
-    serverUrl: 'https://sap.blackducksoftware.com/'
-    mavenExcludedScopes: [ "provided", "test" ]
-    failOn: [ 'BLOCKER', 'CRITICAL', 'MAJOR' ]
+      - "CDSJAVA-OPEN-SOURCE"
+    serverUrl: "https://sap.blackducksoftware.com/"
+    mavenExcludedScopes: ["provided", "test"]
+    failOn: ["BLOCKER", "CRITICAL", "MAJOR"]
     versioningModel: "major-minor"
-    detectTools: [ 'DETECTOR', 'BINARY_SCAN' ]
+    detectTools: ["DETECTOR", "BINARY_SCAN"]
     installArtifacts: true
-    repository: '/cap-java/cds-feature-console'
+    repository: "cap-java/cds-feature-console"
     verbose: true
     scanProperties:
       - --detect.included.detector.types=MAVEN
       - --detect.excluded.directories='**/node_modules,**/*test*,**/localrepo,**/target/site,**/*-site.jar'
       - --detect.maven.build.command='-pl com.sap.cds:cds-feature-console'
     # https://www.project-piper.io/steps/detectExecuteScan/#dockerimage
-    dockerImage: ''
+    dockerImage: ""
 
   sonarExecuteScan:
     serverUrl: https://sonar.tools.sap
     projectKey: cds-feature-console
     # https://www.project-piper.io/steps/sonarExecuteScan/#dockerimage
-    dockerImage: ''
+    dockerImage: ""
     options:
       - sonar.qualitygate.wait=true
       - sonar.java.source=17
