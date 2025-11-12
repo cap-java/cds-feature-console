@@ -46,9 +46,8 @@ runs:
       with:
         step-name: detectExecuteScan
         flags: \
-          --githubToken=$GITHUB_token \
           --version=${{ steps.get-major-version.outputs.REVISION }}
       env:
         PIPER_token: ${{ inputs.blackduck_token }}
-        GITHUB_token: ${{ inputs.github_token }}
+        PIPER_githubToken: ${{ inputs.github_token }}
         SCAN_MODE: FULL
