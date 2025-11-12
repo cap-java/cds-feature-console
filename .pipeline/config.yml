@@ -16,7 +16,6 @@ steps:
     versioningModel: "major-minor"
     detectTools: ["DETECTOR", "BINARY_SCAN"]
     installArtifacts: true
-    repository: "cap-java/cds-feature-console"
     verbose: true
     scanProperties:
       - --detect.included.detector.types=MAVEN
