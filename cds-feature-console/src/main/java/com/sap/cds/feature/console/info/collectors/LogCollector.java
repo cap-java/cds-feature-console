@@ -268,13 +268,7 @@ public class LogCollector extends InfoCollector implements EventHandler {
           Method loggersMethod = c.getDeclaredMethod("loggers");
           if (loggersMethod.getReturnType().equals(String[].class)) {
             for (Object value : c.getEnumConstants()) {
-              try {
-                loggersMethod.setAccessible(true);
-                Object loggers = loggersMethod.invoke(value);
-                result.put(value.toString(), loggers != null ? (String[]) loggers : new String[0]);
-              } catch (Exception e) {
-                logger.error("Cannot access loggers!", e);
-              }
+              addLoggerGroupFromEnumConstant(value, loggersMethod, result);
             }
           }
         } catch (NoSuchMethodException nsme) {
@@ -285,4 +279,15 @@ public class LogCollector extends InfoCollector implements EventHandler {
     }
     return result;
   }
+
+  private static void addLoggerGroupFromEnumConstant(Object value, Method loggersMethod, Map<String, String[]> result) {
+    try {
+      loggersMethod.setAccessible(true);
+      Object loggers = loggersMethod.invoke(value);
+      result.put(value.toString(), loggers != null ? (String[]) loggers : new String[0]);
+    } catch (Exception e) {
+      logger.error("Cannot access loggers!", e);
+    }
+  }
+
 }
