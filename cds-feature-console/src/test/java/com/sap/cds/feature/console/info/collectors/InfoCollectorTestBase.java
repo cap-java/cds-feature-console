@@ -63,8 +63,8 @@ class InfoCollectorTestBase {
 
   @ServiceName(RemoteMonitoringService.DEFAULT_NAME)
   static class RemoteMonitoringTestHandler implements EventHandler {
-    public List<InfoEvent> infoEvents;
-    public Map<String, Object> systemData;
+    private final List<InfoEvent> infoEvents;
+    private final Map<String, Object> systemData;
 
     public RemoteMonitoringTestHandler() {
       this.infoEvents = new ArrayList<>();
@@ -75,7 +75,6 @@ class InfoCollectorTestBase {
     @HandlerOrder(HandlerOrder.BEFORE)
     public void on(InfoEventContext context) {
       InfoEvent infoEvent = context.getInfoEvent();
-      // System.out.println(" - info ev: " + infoEvent.getPath());
       infoEvents.add(infoEvent);
       if ("system".equals(infoEvent.getPath())) {
         systemData.putAll(infoEvent.getData());
@@ -90,7 +89,7 @@ class InfoCollectorTestBase {
     public List<InfoEvent> getEvents(String path) {
       return infoEvents.stream()
           .filter(ev -> ev.getPath().equals(path))
-          .collect(Collectors.toList());
+          .toList();
     }
 
     public List<InfoEvent> getLogEvents() {

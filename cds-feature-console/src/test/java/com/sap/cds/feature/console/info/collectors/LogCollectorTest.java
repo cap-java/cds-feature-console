@@ -145,7 +145,7 @@ class LogCollectorTest extends InfoCollectorTestBase {
     logger.put("level", level != null ? level.toString() : null);
     logger.put("group", Boolean.FALSE);
 
-    List<Map<String, Object>> loggers = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> loggers = new ArrayList<>();
     loggers.add(logger);
 
     Map<String, Object> data = new HashMap<>();
