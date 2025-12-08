@@ -34,5 +34,5 @@ steps:
     options:
       - sonar.qualitygate.wait=true
       - sonar.java.source=17
-      - sonar.exclusions=**/node_modules/**,**/target/**
+      - sonar.exclusions=**/node_modules/**,**/target/**,**/test/**
       - sonar.coverage.jacoco.xmlReportPaths=cds-feature-console/target/site/jacoco/jacoco.xml
