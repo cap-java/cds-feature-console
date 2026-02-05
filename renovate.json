@@ -1,0 +1,87 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":approveMajorUpdates",
+        "schedule:weekends",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "dependencyDashboard": true,
+    "labels": [
+        "dependencies"
+    ],
+    "packageRules": [
+        {
+            "description": "Group all non-major updates in GitHub Actions workflows",
+            "matchManagers": [
+                "github-actions"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "github-actions non-major updates",
+            "automerge": true
+        },
+        {
+            "description": "Group all non-major updates in Helm values files",
+            "matchManagers": [
+                "helm-values"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "helm-values non-major updates",
+            "automerge": true
+        },
+        {
+            "description": "Group all non-major updates in Maven projects",
+            "matchManagers": [
+                "maven"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "maven non-major updates",
+            "automerge": true
+        },
+        {
+            "description": "Group all non-major updates in Maven Wrapper scripts",
+            "matchManagers": [
+                "maven-wrapper"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "maven-wrapper non-major updates",
+            "automerge": true
+        },
+        {
+            "description": "Group all non-major updates in npm projects",
+            "matchManagers": [
+                "npm"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "npm non-major updates",
+            "automerge": true
+        },
+        {
+            "description": "Group all non-major updates in Bundler projects",
+            "matchManagers": [
+                "bundler"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "bundler non-major updates",
+            "automerge": true
+        }
+    ]
+}
