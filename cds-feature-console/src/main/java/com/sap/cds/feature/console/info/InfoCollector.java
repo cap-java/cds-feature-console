@@ -52,7 +52,8 @@ public abstract class InfoCollector {
       }
       getRemoteMonitoringService().emit(event);
     } catch (Exception e) {
-      sendErrorNotification("Data Access Error", e.getMessage());
+      String errorMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getName();
+      sendErrorNotification("Data Access Error", errorMessage);
       logger.error("Could not emit remote-monitoring info event!", e);
     }
   }
@@ -72,7 +73,8 @@ public abstract class InfoCollector {
   }
 
   public void sendErrorNotification(String header, String notification, Object... args) {
-    RemoteLogData logData = new RemoteLogData.Builder()
+    RemoteLogData logData =
+        new RemoteLogData.Builder()
             .type(header)
             .logger("system")
             .thread(Thread.currentThread().getName())
@@ -86,7 +88,8 @@ public abstract class InfoCollector {
   }
 
   public void sendNotification(NotificationType type, String notification, Object... args) {
-    RemoteLogData logData = new RemoteLogData.Builder()
+    RemoteLogData logData =
+        new RemoteLogData.Builder()
             .type(type.name())
             .logger("system")
             .thread(Thread.currentThread().getName())

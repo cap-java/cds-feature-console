@@ -8,6 +8,7 @@ import com.sap.cds.feature.console.info.InfoCollector;
 import com.sap.cds.feature.console.info.Path;
 import com.sap.cds.feature.console.service.CommandEventContext;
 import com.sap.cds.feature.console.service.InfoEvent;
+import com.sap.cds.feature.console.service.OutboxConfig;
 import com.sap.cds.feature.console.service.RemoteMonitoringService;
 import com.sap.cds.ql.Delete;
 import com.sap.cds.ql.Insert;
@@ -91,18 +92,21 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
       return;
     }
 
-    List<OutboxServiceConfig> outBoxConfigs =
+    List<OutboxConfig> outBoxConfigs =
         context
             .getServiceCatalog()
             .getServices(PersistentOutbox.class)
             .map(
-                box ->
-                    context
-                        .getCdsRuntime()
-                        .getEnvironment()
-                        .getCdsProperties()
-                        .getOutbox()
-                        .getService(box.getName()))
+                box -> {
+                  OutboxServiceConfig config =
+                      context
+                          .getCdsRuntime()
+                          .getEnvironment()
+                          .getCdsProperties()
+                          .getOutbox()
+                          .getService(box.getName());
+                  return OutboxConfig.fromServiceConfig(config, box.getName());
+                })
             .collect(Collectors.toList());
 
     InfoEvent outboxConfigsEvent = InfoEvent.create(Path.OUTBOX, Map.of("outboxes", outBoxConfigs));
