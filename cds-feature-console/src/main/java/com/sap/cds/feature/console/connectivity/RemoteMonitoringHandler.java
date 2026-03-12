@@ -1,5 +1,6 @@
 package com.sap.cds.feature.console.connectivity;
 
+import com.sap.cds.feature.console.info.Path;
 import com.sap.cds.feature.console.service.CommandEventContext;
 import com.sap.cds.feature.console.service.InfoEventContext;
 import com.sap.cds.feature.console.service.RemoteMonitoringService;
@@ -24,8 +25,16 @@ public class RemoteMonitoringHandler implements EventHandler {
   @On
   private void handleInfoEvent(InfoEventContext context) {
     logger.debug("Handling info '{}'", context.getEvent());
-    this.remoteMonitoringServer.broadcastToPath(
-        context.getInfoEvent().toJson(), RemoteMonitoringServer.PATH_LOGS);
+
+    String path = context.getInfoEvent().getPath();
+
+    if (path.startsWith(Path.OUTBOX)) {
+      this.remoteMonitoringServer.broadcastToPath(
+          context.getInfoEvent().toJson(), RemoteMonitoringServer.PATH_TASKS);
+    } else {
+      this.remoteMonitoringServer.broadcastToPath(
+          context.getInfoEvent().toJson(), RemoteMonitoringServer.PATH_LOGS);
+    }
 
     context.setCompleted();
   }
@@ -36,5 +45,4 @@ public class RemoteMonitoringHandler implements EventHandler {
     logger.debug("Handling command '{}'", context.getEvent());
     context.setCompleted();
   }
-
 }
