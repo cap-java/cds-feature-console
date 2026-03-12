@@ -1,17 +1,14 @@
-/*
- * © 2024 SAP SE or an SAP affiliate company. All rights reserved.
- */
-package com.sap.cds.feature.dashboard.info.collectors;
+package com.sap.cds.feature.console.info.collectors;
 
-import static com.sap.cds.services.impl.outbox.persistence.OutboxQueries.messagesQuery;
+import static com.sap.cds.feature.console.service.RemoteMonitoringConfiguration.COMMAND_ATTACHED;
 
 import com.sap.cds.Result;
 import com.sap.cds.Row;
-import com.sap.cds.feature.dashboard.connectivity.InfoEvent;
-import com.sap.cds.feature.dashboard.info.InfoCollector;
-import com.sap.cds.feature.dashboard.info.Path;
-import com.sap.cds.feature.dashboard.service.DashboardCommandEventContext;
-import com.sap.cds.feature.dashboard.service.DashboardService;
+import com.sap.cds.feature.console.info.InfoCollector;
+import com.sap.cds.feature.console.info.Path;
+import com.sap.cds.feature.console.service.CommandEventContext;
+import com.sap.cds.feature.console.service.InfoEvent;
+import com.sap.cds.feature.console.service.RemoteMonitoringService;
 import com.sap.cds.ql.Delete;
 import com.sap.cds.ql.Insert;
 import com.sap.cds.ql.Select;
@@ -22,6 +19,7 @@ import com.sap.cds.services.EventContext;
 import com.sap.cds.services.cds.CdsDeleteEventContext;
 import com.sap.cds.services.cds.CqnService;
 import com.sap.cds.services.changeset.ChangeSetListener;
+import com.sap.cds.services.environment.CdsProperties.Outbox.OutboxServiceConfig;
 import com.sap.cds.services.handler.EventHandler;
 import com.sap.cds.services.handler.annotations.After;
 import com.sap.cds.services.handler.annotations.Before;
@@ -46,9 +44,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.LoggerFactory;
 
-@ServiceName(DashboardService.DEFAULT_NAME)
+@ServiceName(RemoteMonitoringService.DEFAULT_NAME)
 public class OutboxInfoCollector extends InfoCollector implements EventHandler {
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(InfoCollector.class);
@@ -69,10 +68,9 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
   private boolean isPersistentOutboxEnabled;
 
   private Map<String, List<Object>> lastSeenEntries = new HashMap<>();
-  private Map<String, Object> outboxes;
 
-  public OutboxInfoCollector(CdsRuntime runtime, DashboardService dashboardService) {
-    super(runtime, dashboardService);
+  public OutboxInfoCollector(CdsRuntime runtime, RemoteMonitoringService remoteMonitoringService) {
+    super(runtime, remoteMonitoringService);
     persistenceService =
         runtime
             .getServiceCatalog()
@@ -87,75 +85,54 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
         .getService(TenantProviderService.class, TenantProviderService.DEFAULT_NAME);
   }
 
-  @After(event = ClientInfoCollector.COMMAND_ATTACHED)
-  private void dashboardAttached(DashboardCommandEventContext context) {
-    outboxes = new HashMap<>();
-    context
-        .getServiceCatalog()
-        .getServices(PersistentOutbox.class)
-        .forEach(
-            box ->
-                outboxes.put(
-                    box.getName(),
+  @After(event = COMMAND_ATTACHED)
+  private void capConsoleAttached(CommandEventContext context) {
+    if (!isPersistentOutboxEnabled) {
+      return;
+    }
+
+    List<OutboxServiceConfig> outBoxConfigs =
+        context
+            .getServiceCatalog()
+            .getServices(PersistentOutbox.class)
+            .map(
+                box ->
                     context
                         .getCdsRuntime()
                         .getEnvironment()
                         .getCdsProperties()
                         .getOutbox()
-                        .getService(box.getName())));
-    emitInfoDashboardEvent(() -> getStatus());
-    emitInfoDashboardEvent(() -> getActiveStatus());
-    if (MultitenancyInfoCollector.isMtEnabled(getRuntime())) {
+                        .getService(box.getName()))
+            .collect(Collectors.toList());
+
+    InfoEvent outboxConfigsEvent = InfoEvent.create(Path.OUTBOX, Map.of("outboxes", outBoxConfigs));
+    emitInfoEvent(() -> outboxConfigsEvent);
+
+    if (isMultitenancyEnabled()) {
       List<String> tenants = getTenantService().readTenants();
-      tenants.forEach(
-          tenant -> {
-            emitInfoDashboardEvent(() -> getTenantStatus(tenant));
-            emitInfoDashboardEvent(() -> getLastSeenEntries(tenant));
-          });
+      tenants.forEach(tenant -> emitInfoEvent(() -> getTenantOutboxes(tenant)));
     } else {
-      emitInfoDashboardEvent(() -> getTenantStatus(null));
-      emitInfoDashboardEvent(() -> getLastSeenEntries(null));
+      emitInfoEvent(() -> getTenantOutboxes(null));
     }
   }
 
-  private String getTenant(DashboardCommandEventContext context) {
-    if (MultitenancyInfoCollector.isMtEnabled(getRuntime())) {
+  private boolean isMultitenancyEnabled() {
+    return getRuntime()
+            .getServiceCatalog()
+            .getService(TenantProviderService.class, TenantProviderService.DEFAULT_NAME)
+        != null;
+  }
+
+  private String getTenant(CommandEventContext context) {
+    if (isMultitenancyEnabled()) {
       return (String) context.getData().get("tenant");
     }
     return null;
   }
 
-  @After(event = COMMAND_START_COLLECTOR)
-  private void startCollector(DashboardCommandEventContext context) {
-    String outboxName = (String) context.getData().get("name");
-    PersistentOutbox outbox =
-        getRuntime().getServiceCatalog().getService(PersistentOutbox.class, outboxName);
-    outbox.start();
-    for (int i = 0; i < 10; i++) {
-      try {
-        Thread.sleep(200);
-      } catch (InterruptedException e) {
-        //
-      }
-      if (outbox.isCollectorRunning()) {
-        emitInfoDashboardEvent(() -> getActiveStatus());
-        return;
-      }
-    }
-  }
-
-  @After(event = COMMAND_STOP_COLLECTOR)
-  private void stopCollector(DashboardCommandEventContext context) {
-    String outboxName = (String) context.getData().get("name");
-    PersistentOutbox outbox =
-        getRuntime().getServiceCatalog().getService(PersistentOutbox.class, outboxName);
-    outbox.stop();
-    emitInfoDashboardEvent(() -> getActiveStatus());
-  }
-
   @SuppressWarnings("unchecked")
   @After(event = COMMAND_CREATE)
-  private void createEntry(DashboardCommandEventContext context) {
+  private void createEntry(CommandEventContext context) {
     sendInfoNotification("Outbox Entry Create", "Creating the outbox entry...");
     String outbox = (String) context.getData().get("outbox");
     String tenant = getTenant(context);
@@ -177,7 +154,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
   }
 
   @After(event = COMMAND_RESET)
-  private void resetEntry(DashboardCommandEventContext context) {
+  private void resetEntry(CommandEventContext context) {
     sendInfoNotification("Outbox Entry Reset", "Resetting the outbox entry...");
     String id = (String) context.getData().get("id");
     String tenant = getTenant(context);
@@ -201,7 +178,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                               });
                         }
                         try {
-                          InfoCollector.inDashboardContext(
+                          InfoCollector.inRemoteMonitoringContext(
                               () ->
                                   persistenceService.run(
                                       Update.entity(Messages_.class)
@@ -220,7 +197,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
   }
 
   @After(event = COMMAND_REMOVE)
-  private void removeEntry(DashboardCommandEventContext context) {
+  private void removeEntry(CommandEventContext context) {
     sendInfoNotification("Outbox Entry Remove", "Removing the outbox entry...");
     String id = (String) context.getData().get("id");
     String tenant = getTenant(context);
@@ -234,7 +211,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                   .run(
                       ch -> {
                         try {
-                          InfoCollector.inDashboardContext(
+                          InfoCollector.inRemoteMonitoringContext(
                               () ->
                                   persistenceService.run(
                                       Delete.from(Messages_.class).where(e -> e.ID().eq(id))));
@@ -251,7 +228,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
   }
 
   @After(event = COMMAND_REPLAY)
-  private void replayEntry(DashboardCommandEventContext context) {
+  private void replayEntry(CommandEventContext context) {
     sendInfoNotification("Outbox Entry Replay", "Replaying the outbox entry...");
     String id = (String) context.getData().get("id");
     String tenant = getTenant(context);
@@ -278,18 +255,8 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                                         newMsg.setMsg(msg.getMsg());
                                         newMsg.setTarget(msg.getTarget());
                                         newMsg.setTimestamp(Instant.now());
-                                        String appid =
-                                            getRuntime()
-                                                .getEnvironment()
-                                                .getCdsProperties()
-                                                .getEnvironment()
-                                                .getDeployment()
-                                                .getAppid();
-                                        if (appid != null) {
-                                          newMsg.setAppid(appid);
-                                        }
 
-                                        InfoCollector.inDashboardContext(
+                                        InfoCollector.inRemoteMonitoringContext(
                                             () ->
                                                 persistenceService.run(
                                                     Insert.into(Messages_.class).entry(newMsg)));
@@ -310,13 +277,13 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                 });
         removedFromHistory.forEach(
             msg -> lastSeenEntries.get(tenant).removeIf(entry -> entry.equals(msg)));
-        emitInfoDashboardEvent(() -> getLastSeenEntries(tenant));
+        emitInfoEvent(() -> getTenantOutboxes(tenant));
       }
     }
   }
 
   @After(event = COMMAND_REMOVE_HISTORY)
-  private void removeHistoryEntry(DashboardCommandEventContext context) {
+  private void removeHistoryEntry(CommandEventContext context) {
     sendInfoNotification(
         "Outbox Entry Remove History", "Removing the outbox entry from history...");
     String id = (String) context.getData().get("id");
@@ -326,7 +293,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
         lastSeenEntries
             .get(tenant)
             .removeIf(entry -> ((Row) entry).as(Messages.class).getId().equals(id));
-        emitInfoDashboardEvent(() -> getLastSeenEntries(tenant));
+        emitInfoEvent(() -> getTenantOutboxes(tenant));
       }
     }
   }
@@ -351,7 +318,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                             (String)
                                 analyzer.analyze(context.getCqn()).targetKeys().get(Messages.ID);
                         CqnSelect select = Select.from(Messages_.class).where(e -> e.ID().eq(id));
-                        InfoCollector.inDashboardContext(
+                        InfoCollector.inRemoteMonitoringContext(
                             () -> {
                               persistenceService
                                   .run(select)
@@ -401,10 +368,7 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
 
                 @Override
                 public void afterClose(boolean completed) {
-                  emitInfoDashboardEvent(() -> getTenantStatus(tenant));
-                  if (event.equals(CqnService.EVENT_DELETE)) {
-                    emitInfoDashboardEvent(() -> getLastSeenEntries(tenant));
-                  }
+                  emitInfoEvent(() -> getTenantOutboxes(tenant));
                 }
               });
     }
@@ -414,37 +378,10 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
   private void tenantSubscribed(SubscribeEventContext context) {
     getTenantService()
         .readTenants()
-        .forEach(tenant -> emitInfoDashboardEvent(() -> getTenantStatus(tenant)));
+        .forEach(tenant -> emitInfoEvent(() -> getTenantOutboxes(tenant)));
   }
 
-  InfoEvent getStatus() {
-    InfoEvent event = InfoEvent.create(Path.OUTBOX);
-    if (isPersistentOutboxEnabled) {
-      event.getData().put("enabled", true);
-      event.getData().put("outboxes", outboxes);
-    } else {
-      event.getData().put("enabled", false);
-    }
-    return event;
-  }
-
-  InfoEvent getActiveStatus() {
-    InfoEvent event = InfoEvent.create(Path.OUTBOX);
-    if (isPersistentOutboxEnabled) {
-      Map<String, Boolean> active = new HashMap<>();
-      getRuntime()
-          .getServiceCatalog()
-          .getServices(PersistentOutbox.class)
-          .filter(s -> s.isCollectorRunning())
-          .forEach(s -> active.put(s.getName(), s.isCollectorRunning()));
-      event.getData().put("active", active);
-    } else {
-      event.getData().put("enabled", false);
-    }
-    return event;
-  }
-
-  InfoEvent getTenantStatus(String tenant) {
+  private InfoEvent getTenantOutboxes(String tenant) {
     InfoEvent event = InfoEvent.create(Path.OUTBOX_TENANTS + '.' + tenant);
     if (isPersistentOutboxEnabled) {
       getRuntime()
@@ -456,46 +393,35 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
                     .changeSetContext()
                     .run(
                         ch -> {
-                          InfoCollector.inDashboardContext(
+                          InfoCollector.inRemoteMonitoringContext(
                               () -> {
                                 CqnSelect select =
-                                    messagesQuery(
-                                        getRuntime(), s -> s.orderBy(e -> e.timestamp().asc()));
+                                    Select.from(Messages_.class).orderBy(e -> e.timestamp().asc());
                                 Result res = persistenceService.run(select);
                                 res.forEach(entry -> updateOutboxEntry(entry));
                                 event.getData().put("entries", res.list());
                               });
                         });
               });
-    } else {
-      event.getData().put("enabled", false);
+
+      // Add history
+      List<Object> reversedList;
+      synchronized (lastSeenEntries) {
+        reversedList =
+            lastSeenEntries.get(tenant) != null
+                ? new ArrayList<>(lastSeenEntries.get(tenant))
+                : new ArrayList<>();
+      }
+      Collections.reverse(reversedList);
+      event.getData().put("history", reversedList);
     }
+
     return event;
   }
 
   private void updateOutboxEntry(Row row) {
     Map<String, Object> data = row;
     data.put("jsonMsg", CloudEventUtils.toMap((String) data.get("msg")));
-  }
-
-  InfoEvent getLastSeenEntries(String tenant) {
-    InfoEvent event = InfoEvent.create(Path.OUTBOX_TENANTS + '.' + tenant);
-    if (isPersistentOutboxEnabled) {
-      event.getData().put("enabled", true);
-      List<Object> reversedList;
-      synchronized (lastSeenEntries) {
-        if (lastSeenEntries.get(tenant) != null) {
-          reversedList = lastSeenEntries.get(tenant).subList(0, lastSeenEntries.get(tenant).size());
-        } else {
-          reversedList = new ArrayList<>();
-        }
-      }
-      Collections.reverse(reversedList);
-      event.getData().put("history", reversedList);
-    } else {
-      event.getData().put("enabled", false);
-    }
-    return event;
   }
 
   private void scheduleOutbox(CdsRuntime runtime, String target) {

@@ -73,13 +73,13 @@ public abstract class InfoCollector {
 
   public void sendErrorNotification(String header, String notification, Object... args) {
     RemoteLogData logData = new RemoteLogData.Builder()
-        .type(header)
-        .logger("system")
-        .thread(Thread.currentThread().getName())
-        .level("error")
-        .message(String.format(notification, args))
-        .ts(System.currentTimeMillis())
-        .build();
+            .type(header)
+            .logger("system")
+            .thread(Thread.currentThread().getName())
+            .level("error")
+            .message(String.format(notification, args))
+            .ts(System.currentTimeMillis())
+            .build();
 
     InfoEvent event = InfoEvent.createRemoteLog(Path.CONSOLE_NOTIFICATION, logData);
     getRemoteMonitoringService().emit(event);
@@ -87,16 +87,25 @@ public abstract class InfoCollector {
 
   public void sendNotification(NotificationType type, String notification, Object... args) {
     RemoteLogData logData = new RemoteLogData.Builder()
-        .type(type.name())
-        .logger("system")
-        .thread(Thread.currentThread().getName())
-        .level("info")
-        .message(String.format(notification, args))
-        .ts(System.currentTimeMillis())
-        .build();
+            .type(type.name())
+            .logger("system")
+            .thread(Thread.currentThread().getName())
+            .level("info")
+            .message(String.format(notification, args))
+            .ts(System.currentTimeMillis())
+            .build();
 
     InfoEvent event = InfoEvent.createRemoteLog(Path.CONSOLE_NOTIFICATION, logData);
     getRemoteMonitoringService().emit(event);
+  }
+
+  public static void inRemoteMonitoringContext(Runnable action) {
+    REMOTE_MONITORING_EVENT.set(true);
+    try {
+      action.run();
+    } finally {
+      REMOTE_MONITORING_EVENT.set(false);
+    }
   }
 
   public static boolean isInRemoteMonitoringContext() {
