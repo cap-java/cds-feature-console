@@ -32,6 +32,7 @@ public class RemoteMonitoringServer extends WebSocketServer {
   private static final Logger logger = LoggerFactory.getLogger(RemoteMonitoringServer.class);
   public static final String PATH_CAP_CONSOLE = "/cap-console";
   public static final String PATH_LOGS = PATH_CAP_CONSOLE + "/logs";
+  public static final String PATH_TASKS = PATH_CAP_CONSOLE + "/tasks";
 
   private final Map<String, Set<WebSocket>> clientsByPaths = new ConcurrentHashMap<>();
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -132,13 +133,14 @@ public class RemoteMonitoringServer extends WebSocketServer {
   }
 
   private void welcomeClient(WebSocket conn, String path) {
-    RemoteLogData welcomeMsg = new RemoteLogData.Builder()
-        .level("INFO")
-        .logger("system")
-        .thread(Thread.currentThread().getName())
-        .type("welcome")
-        .message("Welcome to CAP console Remote Monitoring.")
-        .build();
+    RemoteLogData welcomeMsg =
+        new RemoteLogData.Builder()
+            .level("INFO")
+            .logger("system")
+            .thread(Thread.currentThread().getName())
+            .type("welcome")
+            .message("Welcome to CAP console Remote Monitoring.")
+            .build();
 
     InfoEvent infoEvent = InfoEvent.createRemoteLog(path, welcomeMsg);
     conn.send(infoEvent.toJson());
