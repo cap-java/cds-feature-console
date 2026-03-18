@@ -33,7 +33,6 @@ import com.sap.cds.services.messaging.utils.CloudEventUtils;
 import com.sap.cds.services.mt.DeploymentService;
 import com.sap.cds.services.mt.SubscribeEventContext;
 import com.sap.cds.services.mt.TenantProviderService;
-import com.sap.cds.services.outbox.OutboxMessage;
 import com.sap.cds.services.persistence.PersistenceService;
 import com.sap.cds.services.runtime.CdsRuntime;
 import com.sap.cds.services.utils.outbox.OutboxUtils;
@@ -55,7 +54,6 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
 
   public static final String TYPE = "outbox";
 
-  public static final String COMMAND_CREATE = TYPE + "/create";
   public static final String COMMAND_RESET = TYPE + "/reset";
   public static final String COMMAND_REMOVE = TYPE + "/remove";
   public static final String COMMAND_REPLAY = TYPE + "/replay";
@@ -132,29 +130,6 @@ public class OutboxInfoCollector extends InfoCollector implements EventHandler {
       return (String) context.getData().get("tenant");
     }
     return null;
-  }
-
-  @SuppressWarnings("unchecked")
-  @After(event = COMMAND_CREATE)
-  private void createEntry(CommandEventContext context) {
-    sendInfoNotification("Outbox Entry Create", "Creating the outbox entry...");
-    String outbox = (String) context.getData().get("outbox");
-    String tenant = getTenant(context);
-    String event = (String) context.getData().get("event");
-    OutboxMessage msg = OutboxMessage.create();
-    Map<String, Object> payload = (Map<String, Object>) context.getData().get("payload");
-    if (payload != null && payload.containsKey("event")) {
-      msg.setEvent((String) payload.remove("event"));
-      msg.setParams((Map<String, Object>) payload.get("params"));
-    }
-
-    getRuntime()
-        .requestContext()
-        .systemUser(tenant)
-        .run(
-            r -> {
-              r.getServiceCatalog().getService(PersistentOutbox.class, outbox).submit(event, msg);
-            });
   }
 
   @After(event = COMMAND_RESET)
