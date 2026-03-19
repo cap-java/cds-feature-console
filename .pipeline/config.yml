@@ -33,7 +33,7 @@ steps:
     dockerImage: ""
     options:
       - sonar.qualitygate.wait=true
-      - sonar.java.source=17
+      - sonar.java.source=21
       - sonar.sources=cds-feature-console/src/main/java
       - sonar.exclusions=**/node_modules/**,**/target/**
       - sonar.coverage.jacoco.xmlReportPaths=cds-feature-console/target/site/jacoco/jacoco.xml
