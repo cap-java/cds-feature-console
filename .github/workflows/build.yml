@@ -29,7 +29,7 @@ jobs:
           maven-version: ${{ env.MAVEN_VERSION }}
       - name: Sonar Scan
         uses: ./.github/actions/scan-with-sonar
-        if: matrix.java-version == "21.0.10"
+        if: matrix.java-version == '21.0.10'
         with:
           java-version: 21
           maven-version: ${{ env.MAVEN_VERSION }}
