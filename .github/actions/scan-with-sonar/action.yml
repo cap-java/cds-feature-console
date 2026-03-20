@@ -42,7 +42,7 @@ runs:
       shell: bash
 
     - name: SonarQube Scan
-      uses: SAP/project-piper-action@main
+      uses: SAP/project-piper-action@0694c809adf25568fc3c950041097323d71b91ed # v1.26.2
       with:
         step-name: sonarExecuteScan
         flags: --token=${{inputs.sonarq-token}} --githubToken=${{inputs.github-token}} --version=${{steps.get-revision.outputs.REVISION}} --inferJavaBinaries=true
