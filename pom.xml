@@ -43,7 +43,7 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <cds.services.version>4.7.0</cds.services.version>
+    <cds.services.version>4.8.0</cds.services.version>
     <cds.url>https://cap.cloud.sap/docs/java</cds.url>
   </properties>
 
@@ -64,7 +64,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-bom</artifactId>
-        <version>5.21.0</version>
+        <version>5.23.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -72,7 +72,7 @@
       <dependency>
         <groupId>com.sap.cloud.sdk</groupId>
         <artifactId>sdk-bom</artifactId>
-        <version>5.26.0</version>
+        <version>5.27.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -250,7 +250,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.4</version>
+          <version>3.5.5</version>
         </plugin>
         <plugin>
           <artifactId>maven-pmd-plugin</artifactId>
@@ -273,7 +273,7 @@
         <plugin>
           <groupId>org.pitest</groupId>
           <artifactId>pitest-maven</artifactId>
-          <version>1.22.1</version>
+          <version>1.23.0</version>
         </plugin>
         <plugin>
           <groupId>com.github.spotbugs</groupId>
