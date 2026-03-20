@@ -52,7 +52,8 @@ public abstract class InfoCollector {
       }
       getRemoteMonitoringService().emit(event);
     } catch (Exception e) {
-      sendErrorNotification("Data Access Error", e.getMessage());
+      String errorMessage = e.getMessage() != null ? e.getMessage() : e.getClass().getName();
+      sendErrorNotification("Data Access Error", errorMessage);
       logger.error("Could not emit remote-monitoring info event!", e);
     }
   }
@@ -72,31 +73,42 @@ public abstract class InfoCollector {
   }
 
   public void sendErrorNotification(String header, String notification, Object... args) {
-    RemoteLogData logData = new RemoteLogData.Builder()
-        .type(header)
-        .logger("system")
-        .thread(Thread.currentThread().getName())
-        .level("error")
-        .message(String.format(notification, args))
-        .ts(System.currentTimeMillis())
-        .build();
+    RemoteLogData logData =
+        new RemoteLogData.Builder()
+            .type(header)
+            .logger("system")
+            .thread(Thread.currentThread().getName())
+            .level("error")
+            .message(String.format(notification, args))
+            .ts(System.currentTimeMillis())
+            .build();
 
     InfoEvent event = InfoEvent.createRemoteLog(Path.CONSOLE_NOTIFICATION, logData);
     getRemoteMonitoringService().emit(event);
   }
 
   public void sendNotification(NotificationType type, String notification, Object... args) {
-    RemoteLogData logData = new RemoteLogData.Builder()
-        .type(type.name())
-        .logger("system")
-        .thread(Thread.currentThread().getName())
-        .level("info")
-        .message(String.format(notification, args))
-        .ts(System.currentTimeMillis())
-        .build();
+    RemoteLogData logData =
+        new RemoteLogData.Builder()
+            .type(type.name())
+            .logger("system")
+            .thread(Thread.currentThread().getName())
+            .level("info")
+            .message(String.format(notification, args))
+            .ts(System.currentTimeMillis())
+            .build();
 
     InfoEvent event = InfoEvent.createRemoteLog(Path.CONSOLE_NOTIFICATION, logData);
     getRemoteMonitoringService().emit(event);
+  }
+
+  public static void inRemoteMonitoringContext(Runnable action) {
+    REMOTE_MONITORING_EVENT.set(true);
+    try {
+      action.run();
+    } finally {
+      REMOTE_MONITORING_EVENT.set(false);
+    }
   }
 
   public static boolean isInRemoteMonitoringContext() {

@@ -2,6 +2,7 @@ package com.sap.cds.feature.console.service;
 
 import com.sap.cds.feature.console.connectivity.RemoteMonitoringHandler;
 import com.sap.cds.feature.console.info.collectors.LogCollector;
+import com.sap.cds.feature.console.info.collectors.OutboxInfoCollector;
 import com.sap.cds.services.runtime.CdsRuntimeConfiguration;
 import com.sap.cds.services.runtime.CdsRuntimeConfigurer;
 
@@ -26,9 +27,12 @@ public class RemoteMonitoringConfiguration implements CdsRuntimeConfiguration {
   @Override
   public void eventHandlers(CdsRuntimeConfigurer configurer) {
     if (remoteMonitoringService != null) {
-      configurer.eventHandler(new RemoteMonitoringHandler(remoteMonitoringService.getRemoteMonitoringServer()));
-      configurer.eventHandler(new LogCollector(configurer.getCdsRuntime(), remoteMonitoringService));
+      configurer.eventHandler(
+          new RemoteMonitoringHandler(remoteMonitoringService.getRemoteMonitoringServer()));
+      configurer.eventHandler(
+          new LogCollector(configurer.getCdsRuntime(), remoteMonitoringService));
+      configurer.eventHandler(
+          new OutboxInfoCollector(configurer.getCdsRuntime(), remoteMonitoringService));
     }
   }
-
 }

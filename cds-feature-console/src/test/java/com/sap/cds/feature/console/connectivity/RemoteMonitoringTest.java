@@ -28,7 +28,6 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RemoteMonitoringTest {
 
-  private static final int PORT = 54953; // must match RemoteMonitoringConfiguration
   private RemoteMonitoringService remoteMonitoringService;
   private TestWebSocketClient client;
 
@@ -42,7 +41,8 @@ class RemoteMonitoringTest {
       .getServiceCatalog()
       .getService(RemoteMonitoringService.class, RemoteMonitoringService.DEFAULT_NAME);
 
-    client = new TestWebSocketClient("ws://localhost:" + PORT + "/cap-console/logs");
+    int port = remoteMonitoringService.getRemoteMonitoringServer().getPort();
+    client = new TestWebSocketClient("ws://localhost:" + port + "/cap-console/logs");
     client.connectBlocking();
     assertTrue(client.isOpen(), "WebSocket client should be open");
 
