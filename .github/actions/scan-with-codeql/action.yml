@@ -35,10 +35,6 @@ runs:
       run: npm i -g @sap/cds-dk
       shell: bash
 
-    - name: Install npm dependencies
-      run: npm install
-      shell: bash
-
     - name: Build Java code
       run: mvn clean compile -B -ntp -Dcds.install-node.skip
       shell: bash
