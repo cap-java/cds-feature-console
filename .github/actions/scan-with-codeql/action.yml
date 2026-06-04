@@ -25,7 +25,7 @@ runs:
         maven-version: ${{ inputs.maven-version }}
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@ed410739ba306e4ebe5e123421a6bd694e494a2b # v4
+      uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
       with:
         languages: java-kotlin
         build-mode: manual
@@ -40,6 +40,6 @@ runs:
       shell: bash
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@ed410739ba306e4ebe5e123421a6bd694e494a2b # v4
+      uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
       with:
         category: "/language:java-kotlin"
