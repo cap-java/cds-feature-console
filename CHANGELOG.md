@@ -8,8 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 ### Changed
+- Use centrally managed BlackDuck scan action from [cap-java/.github](https://github.com/cap-java/.github) instead of a local copy
+- Set BlackDuck scan mode to `RAPID` since the project is not yet registered on sap.blackducksoftware.com
+- Override Spring Boot to 3.5.15 and Bouncy Castle to 1.84 to fix HIGH/CRITICAL BlackDuck CVE findings
 ### Deprecated
 ### Removed
+- Local BlackDuck, CodeQL, and Sonar scan action copies (replaced by cap-java/.github workflows)
 ### Fixed
 ### Security
 
