@@ -53,12 +53,55 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Overrides the Spring Boot version 3.5.13 pulled in by cds-services-bom 4.9.0 to fix HIGH/CRITICAL Black Duck findings from 26-07-18 CVEs -->
+      <!-- Can possibly be removed when upgrading to higher cds-services-bom version -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>3.5.15</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Pin JUnit Platform to 6.0.3 to prevent spring-boot-dependencies 3.5.15 from downgrading it -->
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-engine</artifactId>
+        <version>6.0.3</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-commons</artifactId>
+        <version>6.0.3</version>
+      </dependency>
+
+      <!-- Override Bouncy Castle Version 1.83 pulled in by cds-services-bom 4.9.0 to fix HIGH/CRITICAL Black Duck findings from 26-07-18 -->
+      <!-- Can possibly be removed when upgrading to higher cds-services-bom version -->
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>1.84</version>
+      </dependency>
+
       <dependency>
         <groupId>com.sap.cds</groupId>
         <artifactId>cds-services-bom</artifactId>
         <version>${cds.services.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>1.84</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcutil-jdk18on</artifactId>
+        <version>1.84</version>
       </dependency>
 
       <dependency>
