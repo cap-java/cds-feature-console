@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Outbox info collector
 ### Changed
 - Use centrally managed BlackDuck scan action from [cap-java/.github](https://github.com/cap-java/.github) instead of a local copy
 - Set BlackDuck scan mode to `RAPID` since the project is not yet registered on sap.blackducksoftware.com

@@ -2,9 +2,7 @@ package com.sap.cds.feature.console.info;
 
 public final class Path {
 
-  private Path() {
-
-  }
+  private Path() {}
 
   public static final String CONSOLE = "console";
   public static final String REMOTE_MONITORING = "remote-monitoring";
@@ -20,4 +18,6 @@ public final class Path {
   public static final String TRACES_OUTPUT = TRACES + ".output";
   public static final String TRACES_EVENTS = TRACES + ".events";
 
+  public static final String OUTBOX = "outbox";
+  public static final String OUTBOX_TENANTS = OUTBOX + ".tenants";
 }
