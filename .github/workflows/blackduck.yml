@@ -26,8 +26,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Scan With Black Duck
-        uses: ./.github/actions/scan-with-blackduck
+        uses: cap-java/.github/actions/scan-with-blackduck@296573b55e906f5c77a1855bcfe4285cbbc5cac4 # main
         with:
           blackduck_token: ${{ secrets.BLACK_DUCK_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           maven-version: ${{ env.MAVEN_VERSION }}
+          project-name: com.sap.cds.feature.console
+          included-modules: cds-feature-console
+          # scan_mode and rapid_compare_mode determine the type of scan to perform
+          # FULL scan on main, RAPID scan on a PR that will only tag issues introduced by the PR
+          # not pre-existing issues that could have appeared in the main branch in the meantime
+          # Set to RAPID now for main and for PRs because the project com.sap.cds.feature.console is not available on https://sap.blackducksoftware.com/
+          # Change back to FULL on main as soon as the project has been created on https://sap.blackducksoftware.com/.
+          #scan_mode: ${{ github.event_name == 'pull_request' && 'RAPID' || 'FULL' }}
+          #rapid_compare_mode: ${{ github.event_name == 'pull_request' && 'BOM_COMPARE' || '' }}
+          scan_mode: 'RAPID'
+          excluded-dirs: '**/*test*,**/target/site'

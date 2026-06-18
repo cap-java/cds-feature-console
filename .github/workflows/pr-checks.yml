@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check changelog
-        uses: cap-js/.github/.github/actions/check-changelog@main
+        uses: cap-js/.github/.github/actions/check-changelog@296573b55e906f5c77a1855bcfe4285cbbc5cac4 # main
 
   check-pr-title:
     runs-on: ubuntu-latest
     steps:
       - name: Check PR title
-        uses: cap-js/.github/.github/actions/check-pr-title@main
+        uses: cap-js/.github/.github/actions/check-pr-title@296573b55e906f5c77a1855bcfe4285cbbc5cac4 # main
